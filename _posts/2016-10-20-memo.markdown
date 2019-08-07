@@ -1,0 +1,29 @@
+---
+layout: post
+title:  "Working memo on group project"
+date:   2016-10-08 19:45:31 +0530
+categories: Node
+---
+
+Choosing a database
+=
+
+Our project is scraping job boards and visualizing the resulting technology trends by city. I'm going to recommend two primary things: 1) that we modularize the textual analysis from the scraping and 2) that we implement databases in Mongo. 
+
+The resulting data flow would look like this: 
+
+  scraper -> pre-processing -> postings database -> textual analysis -> analyzed database
+
+There would be two databases, one for the more or less raw output of the apis and web scraping, and another for the results of a textual analysis on this data. The reason for this demarcation is that I think the textual analysis is non-trivial with respect to correctness, and would be much easier on an existing database rather than in the scraper itself. The postings database would contain everything the scraper deems important, but the scraper itself wouldn't need to be very intelligent. It would simply need to trim the data. Statistical integrity is also a primary concern requiring modularization of the textual analysis. Getting something is much more difficult than getting something correct out of multiple and possibly redundant sources, and there it is necessary to have a separate module with the possibility of extensibility for proper analytics. 
+
+A few of these parameters lend themselves to a nosql database. The [requirements of a nosql analytics platform](http://www.infoworld.com/article/2983953/nosql/how-to-choose-a-nosql-analytics-system.html) dovetail well with textual analysis: namely, multidimensionality(dealing with nested structures, like the outputs of different apis or web scrapes, as well as paragraphs themselves), polymorphic queries(querying attributes that may or may not exist, again as a result of varying scrape results), and finding structural patterns, which is the core of language analysis. In addition, the parameters of the project solution could change rapidly and noSql is a good option. Finally, there is no need to ensure data consistency in the results database either, some cities may just not have data on some technologies.  
+
+If on the other hand we wanted to query an api as well as just scrape a page and put this into a sql database it would be very hard because of rigidity in the schema. Analysis of the resulting text would also probably require a representation layer that incorporates structure not-represented by the SQL table, and might resemble building another non-relational layer anyway. It would be better to store it initially in the form that most resembles the text itself. With nosql and modularization the scraper gets to be dumb, and the analysis engine gets to operate on the kind of data it needs.        
+
+[Quasar analytics](http://quasar-analytics.org) is one option for performing analysis on the resulting postings database, or we could implement our own solution. Either because data scientists think in SQL or for some other reason, it is implemented with an interface called SQL^2. There's a good overview of the state of non-relational analytics [here](http://www.infoworld.com/article/2983953/nosql/how-to-choose-a-nosql-analytics-system.html). Slamdata is an open source visualization platform that is powered by Quasar, but for the moment I don't think there's any need for such robust solution on the front-end. 
+
+I'm not sure what the trade-offs are in terms of performance if we modularize. Every posting would be getting read and wrote twice, once from the scraper and then into the analysis. I do think we would be looking at sparse documentation and few examples if we go with nosql analytics, although SQL^2 is probably not too hard. An MVP could also be implemented using our own analysis on the postings database without too much difficulty, but it would be extensible.  
+
+
+
+

@@ -1,0 +1,255 @@
+---
+layout: post
+title:  "Monads Part I"
+date:   2016-09-01 19:45:31 +0530
+categories: Javascript
+---
+Monadology
+=
+There is a joke in Haskell circles that anyone who learns about monads writes a tutorial. And so here it is. 
+
+Monads are notoriously difficult to get your head around. They are important, however, in Javascript and not only in the purely functional languages where they are more popular. First, a disclaimer though: this is not intended as a formal definition or explanation with Haskell in mind. It is intended as a guide to solving [the codewars Maybe Monad problem](https://www.codewars.com/kata/monads-the-maybe-monad) in Javascript by taking the "box metaphor" to its absolute limit. The goal here is to understand 90% of how monads can and do work in Javascript, based especially on a [visual representation](http://adit.io/posts/2013-04-17-functors,_applicatives,_and_monads_in_pictures.html)of how they do type switching. Javascript being loosely typed, there is necessarily a lot that will not be covered. 
+
+To understand monads we will combine two ideas: the idea of type-switching, and the idea of control of an inner function by an outer function. 
+
+Changing Type Signatures
+=
+
+If we have a type (say “string” or "integer"), a function can be described in four ways in relation to the type, based on what goes in (the left-hand side) and what goes out (the right-hand side). If integer is represented as a white circle, and string as a black one, one possibility is the following. This function has nothing to do with the black type. It accepts an integer as a parameter and outputs an integer:
+
+<img src="{{ site.url }}/images/ts-1.svg" class="center" />
+
+This function takes a value of the integer type and outputs a value of the string type: 
+
+<img src="{{ site.url }}/images/ts-2.svg" class="center" />
+
+This function takes a value of the string type as a parameter, but returns something in integer type:
+
+<img src="{{ site.url }}/images/ts-3.svg" class="center" />
+
+This function accepts a value of the string type and returns a value of the string type:
+
+<img src="{{ site.url }}/images/ts-4.svg" class="center" />
+
+Whew. Almost done. Now, suppose you want to take a function and change its return type. It's not hard in a functional language, because you can pass the function around, and invoke the function in another function:
+ 
+<img src="{{ site.url }}/images/ts-5.svg" class="center" />
+
+So suppose the inner function takes a number and returns a number. And the outer function takes a string and returns a string. We could have something like this: 
+
+{% highlight javascript %}
+
+function outer(str, fn){
+	if(typeof str != 'string'){throw new Error();}
+	return fn(Number(str)).toString;
+}
+
+outer('1',function(num){
+	if(typeof num != 'number'){throw new Error();}
+	return num + 1; 
+}); 
+{% endhighlight %}
+
+Note here that Javascript has very flexible parameters, so to enforce a stronger type signature on the input, we have to throw an error. 
+
+Note also that there must be some operation to change between types, and that this is all done by the outer function (here we are just using native javascript methods). We can represent this logic with an arrow. 
+
+<img src="{{ site.url }}/images/ts-6.svg" class="center" />
+
+Controlling inner-functions from outer-functions
+=
+So far nothing very interesting has happened. So far it doesn't matter that we are converting between types. Turning away from the type discussion, however, there's a cool thing we could do, since we are invoking one function in another function. We could, with the business logic in the frame, skip over the function we have embedded: 
+
+<img src="{{ site.url }}/images/ts-7.svg" class="center" />
+
+We can already see a hint of one of the motivating concerns of monads, a separation of concern between business logic (here skipping over the function) and the value that is sent to the embedded function. The result is that, if the two types of computation (the frame and the embedded function) could be chained together, there would be almost two series of computation running in parallel, working on different perspectives of the same value. 
+
+If we wanted to, we could make sure the embedded function was never invoked at all, unless the input was in a certain  state. To check if an array element exists, and then do something with it, one might write something like this...
+
+{% highlight javascript %}
+
+if(myarray[1]){
+	var x = myarray[1].myproperty;
+} 
+{% endhighlight %}
+
+Here the value in the conditional accepts a type that may be undefined. But the code in the if-block can only be executed if the same value is defined. 
+
+Using an outer function we could say:
+{% highlight javascript %}
+
+function outer(mysteryelement, fn){
+	if (typeof mysteryelement == 'undefined'){
+		return 'no element';
+	}else{
+		return fn(mysteryelement);
+	}
+}
+
+var x = outer(myarray[1],function(element){return element.myproperty;});
+{% endhighlight %}
+
+Here the discriminating business logic which tells us whether the object is useful or not is found in the outer function. It's not implemented by wrapping the mysteryelement in a new object, and type signature isn't important. However, this could change. 
+
+A type controlling an inner-function
+=
+So you can change types using an outer function, as was seen in the first part, and you can alter control-flow and even skip over the inner function using logic in the outer function, as in part two. Most of the work of understanding monads (or at the least the maybe monad) is over. If the inner function was applied repeatedly, and the outer function was also applied repeatedly, there would be two streams of computation, but ultimately they would be controlled by the outer function.
+
+All that is left to do now is to separate things one more time. Instead of making the outer-function do so much work, some of the work of determining what to do is implemented on the special type which the outer-function has as its signature. The type that the outer function accepts and outputs would wrap the type that the inner function accepts and outputs, but with extra information at a higher layer of abstraction, relevant perhaps to whether or not the inner function was invoked at all. 
+
+This type, which the outer function accepts, can wrap the object that the embedded function needs, but it would only expose to the outer function that part of the object which it needs to make it's own decisions. 
+
+<img src="{{ site.url }}/images/ts-8.svg" class="center" />
+
+Here we have even more separation of concern. There is (a) the black "package" (in Javascript almost certainly an object), which is making decisions about what it reveals on its interface to the outer function. There is (b) the outer function, which is determining how it manages what the interface of this object tells it. And there is (c) the inner function, which handles the wrapped value of the object. 
+
+Using the example from array access, this special type could be implemented using a constructor for an object that simply holds a value. It has an interface that is one of two states, red and green: 
+
+{% highlight javascript %}
+
+Function MagicObject(element){
+	if (typeof element == 'undefined')
+		this.state = 'red';
+	else{
+		this.state = 'green'; 
+	}
+	this.value = element; 
+} 
+{% endhighlight %}
+
+Then, in the outer function: 
+{% highlight javascript %}
+
+function outer(magicElementInstance,fn){
+	if (magicElementInstance.state == red){
+	}else{
+	 return new magicElement(fn(magicElementInstance.value)); 
+	}
+}
+{% endhighlight %}
+
+The "package" types here, which have all of this special wrapping functionality, are pretty close to being monads, and the possible values of its interface are called contexts. In Haskell, a type that behaves a lot like the object just described is the “maybe” monad, which determines whether a value exists or not, and which we will build in part 2. It allows you to short-circuit a process if the monad interface reveals that there is nothing in the value.
+
+Such a system allows you to represent a stream of computation on top of another one. For this reason it is sometimes called a "programmable semicolon". To keep the two layers separated it uses a wrapping type as input that does double-duty: it has some properties useful to the outer-function, but it also holds holds the value that the inner function needs. Since the whole thing outputs the same type that went it, the process can be repeated indefinitely.    
+
+Some of the confusion around monads arises because the word monad is necessarily used to refer to two things: the entire system with its type changing properties and logic (the <i>type manifold<a href="#note">*</a></i>), and the wrapping type itself (properly called the "monad type") which defines the type signature of the system. The reason this double-signification is necessary is that, in the cases I am aware of in Javascript (promises and jquery selectors) the rest of the manifold (the outer function above and the embedding of the inner function) is implemented <i>as a method on the monad type</i>, allowing the whole thing to be chained together. Call these "strong monads", because to do this syntactic trick they collect the whole monad system together on a single object.
+
+Jquery implements a strong monad: 
+
+<img src="{{ site.url }}/images/ts-9.svg" class="center" />
+
+Each instance of a jquery selector returns an entire package (the black monad type), each of which implements all the same methods. This package wraps the selected DOM element, and exposes a new interface that has extra functionality. The whole process can be serialized. 
+
+So now we know what a monad system does: 
+
+>A monad system is a system for type-changing that is serializable. 
+
+Other Elements of the Monad System 
+=  
+In proper monad systems, the different aspects of the type conversion are known by different names. The goal is to take any average function and make it accept the monad type (through "binding" it) and output the monad type (through "lifting" it). A simple value can also be converted into the monad type by running a function called "Unit" on it. 
+
+Instead of referring to “an outer function” that both does logic on the monad and unwraps it for the callback, "bind" is called and returns a function like this: 
+
+<img src="{{ site.url }}/images/ts-12.svg" class="center" />
+
+The outer function here is added by the call to bind. It is a nameless wrapping function added so that the system accepts and outputs a value in the monad type. It may or may not implement any logic about calling the embedded function, but it must by definition unwrap the value and feeds it to the callback.  
+
+Another important function is “lift” which wraps a function in another function ensuring that it outputs a value in the monad type: 
+
+<img src="{{ site.url }}/images/ts-10.svg" class="center" />
+
+Lift is important because bind actually takes functions that already output monads. More separation of concerns. 
+
+Finally, there is unit, which, like lift, takes something unrelated to the monad and makes it monadic. It just takes a value and puts it in monad form. It's dashed here because it doesn't contain a function but just operates on a value and returns a type:  
+
+<img src="{{ site.url }}/images/ts-13.svg" class="center" />
+
+Combining all of these, we arrive at a maximal expansion for the type manifold: 
+
+<img src="{{ site.url }}/images/ts-18.svg" style="height:600px; width: 600px" class="center" />
+
+So if you are implementing a monad system it needs these elements: a normal function that is doing some logic on a value, a way of outputing a monadic value from that callback, a way of unwrapping a monadic value into the callback, and a way of doing something useful with the monad itself (the monad logic). You will also need something like unit (not shown), which puts a value into the monad type so that there's an initial value to feed into the system. 
+
+Where is "the monad" in this system? Most commonly, a value is said to be "in the monad" if it is of the black type here-- the type that everything is being converted to and from for purposes of gaining some extra functionality. In part two we will see that "the monad type" can really be a whole group of types, so long as they have meaningingful results for the frame functions that do different things based on them. Another definition of the monad here could be the namespace where the bind/lift/unit functions are found. Alternatively, the monad could be whatever is returned and allows the serialization of calls. It's probably best just to talk about the monad system. 
+
+Three Monad Laws
+=
+With these elements in place, we can now turn to the [three monad laws](https://curiosity-driven.org/monads-in-javascript), which encapsulate what well-behaved type manifolds should do. 
+
+First, there's the rule of left-identity. Formally expressed, it says: 
+
+>bind(unit(x), f) ≡ f(x)
+
+It says that if you have a monadic (already lifted function) and bind it, and input the unit result of some value, you should get the same result as applying the same function with the original value. 
+
+<img src="{{ site.url }}/images/ts-14.svg" class="center" />
+
+
+This means, among other things, that all conversion to the monad preserves the value of the wrapped type. The monad type is trivial. 
+
+Secondly, there is the law of right-identity:
+
+>bind(m, unit) ≡ m
+
+Which says that if a value is monadic already, binding the unit of it changes nothing. 
+
+<img src="{{ site.url }}/images/law2.svg" class="center" />
+
+
+So if this works, bind is doing what it should and just outputing the same as was input. 
+
+Finally there's the associativity rule:
+
+>bind(bind(m, f), g) ≡ bind(m, x ⇒ bind(f(x), g))
+
+In type manifold representation this becomes: 
+
+<img src="{{ site.url }}/images/law3.svg" class="center" />
+
+
+Which demonstrates how everything that is so awesome about the bind function just gets more awesome when there are multiple functions chained together. In the situation of nested bound functions, bind only needs to provide monadic input to the left-most inner-function, and it won't change the monadic output of the right-most inner function, no matter how many there are. 
+
+
+To Build a Monad
+=
+You should now know everything you need to need to know now to start building your own monads at home. A few design questions to ask: 
+
+1. What is the motivation for implementing a monad? Monads are a design pattern like any other, only applicable to functional programming.
+2. What value does the monad type wrap? How can you make sure the monad type doesn't alter this value (in order to fulfill the monad laws)? 
+3. How weak or strong is the monad? 
+4. Is there is a default passthrough option? With promises, you can catch an error as a callback at any point in the chain, but you can also elect to catch it only at the end. Providing this option for error handling can be a good idea.  
+5. How can you test the monad to make it sure it fulfills the laws? Is this easier in a distributed system (a weak monad) or with a strong monad? 
+
+That's all there is about monads for now, which are just one part of a system for managing types. The system itself is composed of functions, frames, and monads. In the next section we are going to get our hands dirty and build the "Maybe" monad.
+<hr>
+<a name="note">*</a>I have chosen the phrase "type manifold" because the word monad has been semantically bleached and devoid of meaning ever since Leibniz called them the essense of everything. The part of the system having to do with changing types should encompass the meaning of "enclosure" and "switching", which manifold does nicely. 
+
+Interestingly, a philosopher other than Leibniz, Kant, had an idea much closer to the monad of computer science, called the apperception manifold. For Kant, the embedded frame is consciousness, which is subject to an outer "transcendental" frame. Bear with me here. Everything going into consciousness must first be wrapped in the forms of space and time. These forms are also the ground for the possibility of continuous perception. Whoa.  
+
+Since Kant's apperception manifold deals with the idea of typed input as the grounds of a continuous process, a translation from perception to computation affords an interesting reflection on monads: 
+
+<table>
+<th>
+	Perception
+</th>
+<th>
+	Computation
+</th>
+<tr>
+	<td>
+		“But this synthetic unity can be none other than that of the combination of the manifold of a given intuition in general in an original consciousness in conformity to the categories, only applied to our sensible intuition. Consequently, all synthesis whereby perception itself becomes possible stands under the categories, and since experience is cognition through connected perceptions, the categories are conditions of the possibility of experience, and therefore hold a priori also of all objects of experience.” <a href= "https://www.marxists.org/reference/subject/ethics/kant/reason/ch02.htm">Kant</a>
+	</td>
+	<td>
+		“But this seralizability can be none other than that of the combination of the manifold of a given type in general in an original execution in conformity to the wrapping types, only applied to an embedded frame. Consequently, all serializability whereby function application itself becomes possible stands under the wrapping types, and since repeated application is computation through connected applications, the wrapping types are conditions of the possibility of serializability, and therefore hold a priori also of all arguments to the embedded frame.”
+	</td>
+</tr>
+</table>
+
+
+
+
+
+
+This makes clear many things are not clear if one is thinking of Leibniz in the back of one's mind. 
+
+

@@ -1,0 +1,133 @@
+---
+layout: post
+title:  "The Most Useful Socket.IO Methods"
+date:   2016-09-01 19:45:31 +0530
+categories: Node
+---
+
+I just completed a two-day project creating a 2-player checkers game using D3, Backbone, and socket.IO. Although I was able to get it work before migrating to sockets by using ajax polling, the interface and routes were becoming overly complicated because of multiple game states being entwined as a result of ad-hoc messaging from the other player. Sockets cleaned this up very fast. But when should you use sockets? 
+
+Generally, the properties of http responses that make them ideal for certain scenarios are also their greatest weakness. If it requires caching as a static asset, or if error handling is important, http is the way to go. If on the other hand you want to push from the service (e.g. message the client directly from the server), then sockets come to rescue. [Here are some](https://blogs.windows.com/buildingapps/2016/03/14/when-to-use-a-http-call-instead-of-a-websocket-or-http-2-0) cases in which http is actually preferable.
+
+The best tutorial I've seen for setting up sockets can be found [here](http://www.programwitherik.com/socket-io-tutorial-with-node-js-and-express/). 
+
+The io Object: importing sockets
+=
+The socket.IO docs are pitiful, and that is probably the only reason that sockets have a reputation as more complex or advanced than http. In reality they are far simpler. 
+
+The io object represents the result of importing the module on the server, or loading the socket.IO script on the client. 
+
+When io is imported into node code it is as a server constructor. It can be used with or without the new keyword: 
+
+{% highlight javascript %}
+  var io = require('socket.io')();
+  // or
+  var Server = require('socket.io');
+  var io = new Server();
+{% endhighlight %}
+
+In both cases what we have as a result is a socket server. 
+
+The socket server can take arguments: 
+
+{% highlight javascript %}
+  Server(<httpServer>, <optionsObject>)
+{% endhighlight %}
+
+which creates a new Server and attaches it to the given server.
+
+So when we do this: 
+
+{% highlight javascript %}
+var server = require('http').createServer(app);  
+var io = require('socket.io')(server);
+{% endhighlight %}
+
+we are really just passing the http server to the socket server instance. 
+
+Note that sockets on the most recent version of express don't work unless the server is first created as an http server. The statement http.createServer(<expressApp>) is valid with express because express is now actually implemented as middleware.
+
+So what can we do with this new and improved socket server instance? 
+
+Connection and client.on: connecting on the server side
+=
+The basic pattern, which almost all other socket architecture is based around, is to listen for a connection, and in the connection callback set up new listeners for the client. Each connection event receives a client, which contains a new and unique socket id associated with that client, and is accessible in the closure scope of the new listeners.  
+
+{% highlight javascript %}
+io.on('connection', function(client) { 
+  var socketId = client.id;
+  client.on('<eventName>', function(data) {
+  //do something  
+  });
+});
+{% endhighlight %}
+
+The eventName is always a string, similar to event names in event systems you are used to. When the event is fired, the callback is invoked with the data passed by the client. 
+
+But how does the client connect? 
+
+Socket.on and Socket.connect: connecting on the client side
+=
+
+On the client side, the pattern is much the same, except that here we deal only with one socket. To initiate the connect event which the server is listening for, you just call io.connect with the address of the server as argument. Then, you listen for the successful connection: 
+
+{% highlight javascript %}
+
+socket = io.connect('http://localhost:8080');
+  
+socket.on('<eventName>', function(data) {
+
+});
+{% endhighlight %}
+
+Once again, the eventName is whatever you want, and the payload is anything the server sends as data.
+
+
+socket.emit: sending from the client
+=
+Now that you have a connection between client and server, you can send a message to the server with socket.emit: 
+
+{% highlight javascript %}
+socket.emit('<eventName>',<dataObject>);
+{% endhighlight %}
+
+Emit: messaging all clients
+=
+Suppose the server needs to send an event to all the connected sockets. In that case you just call the emit method: 
+
+{% highlight javascript %}
+io.sockets.emit(<eventName>,JSON.stringify(obj));
+{% endhighlight %}
+
+Notably this involves accessing .sockets on the io object, which refers to all the connected sockets.
+
+io.to: messaging a single client
+=
+To send a message to a single client from the server involves the .to method: 
+
+{% highlight javascript %}
+io.to('<socketId>').emit('<eventName>',JSON.stringify(obj));
+{% endhighlight %}
+
+The socketId here is a unique id that is associated with each client, accessible via client.id.
+
+Disconnecting
+=
+Disconnecting on the client and server-side is also remarkably simple. On the client we just call:
+
+{% highlight javascript %}
+socket.disconnect();
+{% endhighlight %}
+
+And to listen for this on the server there is: 
+{% highlight javascript %}
+client.on('disconnect',function(data){
+            
+});
+{% endhighlight %}
+
+Summing Up
+=
+Right now you know everything you need to know to make a simple chat client with sockets, or to do just about anything else. There are a few advanced topics, however, including namespaces and rooms. It turns out that sockets even support buffers, which means that a client can listen for the on.data event from a buffer that has been piped to it. These advanced topics are not immediately applicable to a lot of cases, so unless your problem really requires them, there's no need. Just enjoy the radical simplicity of sockets. You can read more about sockets [here](https://nodesource.com/blog/understanding-socketio/).  
+
+

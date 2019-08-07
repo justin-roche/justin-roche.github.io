@@ -1,0 +1,174 @@
+---
+layout: post
+title:  "Monads Part II"
+date:   2016-09-05 19:45:31 +0530
+categories: Javascript
+---
+The Property Access Function
+=
+In part 1 we saw what monads are and how the monad system depends on type-changing. We saw a syntactic definition of monad systems as implementing a serializiable type interface. Now we will explore how to implement such a system and how it can be useful in one very particular and annoying circumstance, which is when you have a long property access attempt, such as a.b.c.d, which may at any point result in an error if any of those objects are undefined. 
+
+What would be nice is a function of the form:
+
+{% highlight javascript %}
+F(object,'a','b','c','d'...)
+{% endhighlight %}
+
+This function would evaluate to undefined if any element in the chain was undefined, and would otherwise return the evaluated value. Of course, this could be done really simply with iteration, but what would be the fun in that? What you really want is a monad. Because as simple as this would be to iterate through, it demonstrates quite easily the power of monads. Using only the bind, lift, and the other functions already discussed, you can get some pretty amazing behavior.  
+
+The Unit Function
+=
+The most basic monad function, which we saw earlier, is the unit function which takes some value and wraps it in another type. This other type exposes an interface of some kind to the monad system. In order to conduct access like a.b.c.d, where one might not have any value, the monad that we want only needs two potential states, a state reflecting that it holds a defined object, and a state that reflects that it holds nothing, because there was no object to access. 
+
+{% highlight javascript %}
+
+Maybe.unit = function (x) {
+		if(x instanceof Nothing)
+			{return new Nothing();}
+		else{return new Just(x);}
+};
+
+{% endhighlight %}
+
+"Just" and "Nothing" are, bizarrely, the conventional names for these two states, from the people that brought you "Monad" in the first place. Here the function is a method of a constructor called Maybe, but again, crucially, this is just syntactic sugar. 
+
+Unit takes a value, and puts it into one these two "states". Here the states are represented as different object types. If we call unit on a brand new value like "hello", the fallthrough case is a Just, meaning that it has a value. The only time a Nothing is returned is if there was a prior nothing.
+
+There's nothing mysterious about Just:
+
+{% highlight javascript %}
+function Just (x) {
+  this.toString = function () { return "Just " + x.toString(); };
+  this.just = x;
+  Object.freeze(this);
+};
+{% endhighlight %}
+
+Nor is there anything mysterious about Maybe:
+
+{% highlight javascript %}
+function Nothing () {
+  this.toString = function () { return "Nothing"; };
+  Object.freeze(this);
+};
+{% endhighlight %}
+
+These are literally wrapping types, in which the different constructors allow us to test whether it is in one of two states. It would perhaps be more natural to have a single 'Maybe' object and give it a property called 'state', which would be in one of two states-- nothing or present-- but the convention of utilizing different Object types is from Haskell and is adopted here. 
+
+The Lift Function
+=
+Unit is pretty sweet, but it's nothing without Lift. When lift gets involved, you aren't just converting values, you're converting entire functions, as if you are some kind of god. A function that previously was completely normal is mutated into some kind of Batman function that can return a monadic value all the time. 
+
+{% highlight javascript %}
+Maybe.lift = function (f) {
+
+		return f2; 
+
+		function f2(x){
+			try{ var r = f(x);
+			    return Maybe.unit(r);} 
+			catch(e){return new Nothing();}
+		}
+};
+{% endhighlight %}
+
+Here the extra layer of the catch/try statement is what switches the type from a Just to a Nothing if the property access function has an error. This is what allows for failing property accesses to be converted into a monadic value.    
+
+The Bind Function
+=
+
+Lift and Unit are pretty simple to understand. It's just type changing. Bind is the same, except it takes a lifted function and makes it even more amazing. What's more amazing than Batman? It would have to be a Jason Bourne function that not only outputs monadic values, but can receive them as inputs as well:  
+
+{% highlight javascript %}
+Maybe.bind = function (f) {
+
+		return interface; 
+
+		function interface(x){
+			if (x instanceof Nothing){
+				return new Nothing(); 
+			}
+			if (x instanceof Just){
+				var v = f(x.just);
+				return v; 
+			}
+			throw new Error();	
+		}
+
+};
+{% endhighlight %}
+
+Here there actually is also some business logic, and it should be obvious by now that no one bind/lift/or unit function is appropriate for every monad. For the simplest of monads even the unit function must be responsive to the two possible states. 
+
+The Do Function
+=
+There is one more important function that's common in monad systems: the do function:
+
+{% highlight javascript %}
+Maybe.do = function(m) {
+
+  var fns = Array.prototype.slice.call(arguments, 1);
+
+  var r = fns.reduce(function(s,v,i){
+		return Maybe.bind(v)(s); 
+  },m); 	
+
+  return r; 
+
+};
+} 
+{% endhighlight %}
+
+Do is basically for calling multiple functions without writing them out repeatedly. As written here, it is doing a few things. First, it is taking some value that has already been run through unit. We know this because on the first run through reduce a bound function is called with it, and a bound function takes a value in the monad. Second, it is binding some functions, which must already have been lifted. Then, it is applying those functions as it accumulates a result.
+
+The Be All and End All
+=  
+With these parts there is everything needed to create the be all and end all of property access. That is, a computation that will literally be all of the results that may be evaluated, but will end all computation and return undefined if there is ever an undefined property. Consider an object such as this:
+
+{% highlight javascript %}
+var o = {a:{b:{c:{}}}};
+
+Get(o,"a","b","c") => {}
+Get(o,'a','x','y') => undefined
+
+{% endhighlight %}
+
+To accomplish this what is needed is a generic function for property access:
+
+{% highlight javascript %}
+let access = function(s,o){
+	return o[s];
+}
+{% endhighlight %}
+
+This function is the function that gets modified into accepting and outputing values that may or may not exist. First it should be lifted to output monads, then it should be bound, in order to accept monads. The object itself will be value the monad wraps. Here's how to write the Get function:
+
+{% highlight javascript %}
+
+function Get(o,...rest){
+
+	var funcs = [];
+	for(let str of rest){
+		funcs.push(Maybe.lift(access.bind(null,str)));
+	}
+	var x = Maybe.do(Maybe.unit(o), ...funcs);
+
+	if(x instanceof Just){
+		return x.just
+	}	
+	return undefined;
+}
+
+{% endhighlight %}
+
+The first part of this is just another iteration, through the provided string keys. It binds the keys as the first argument of each function. Since the object is the really important thing, the object is privileged as that which is passed around in the Just/Nothing wrappers. While doing this it lifts the function to output monads. 
+
+It then runs do on these functions, after putting the initial object into monad form. 
+
+Finally, it looks at the result, and if the result is a Just then it returns its value, otherwise it returns undefined. 
+
+Where You Monad Next
+=  
+
+High five if you've made it this far. As we've seen the actual implementing of a monad system isn't like the idealized version presented before. Most importantly, the convention adopted here hasn't dealt with mutable state on a wrapping object, but with completely different types that wrap objects (here "Just" and "Nothing"). This is probably preferred because different types amount to immutable state, which functional programming prefers. Secondly there was some business logic found on both the Lift and Bind Functions, because these are places where for example you catch an error when running the framed function. I have to conclude that I still don't know where exactly to find the monad in all of this-- since here it was just a namespace "Maybe". Defining a monad "system" seems to make a lot more sense. 
+

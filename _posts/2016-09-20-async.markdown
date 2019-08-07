@@ -1,0 +1,98 @@
+---
+layout: post
+title:  "Why synchronous and asynchronous are terrible terminology"
+date:   2016-10-08 19:45:31 +0530
+categories: Node
+---
+
+<img src="{{ site.url }}/images/picard.png" class="center" />
+
+Synchronicity
+=
+
+Computer scientists looking at node will say that it combines synchronous processes, like normal javascript, which runs one line at a time, with asynchronous processes like read/write operations which can run in the "background" while javascript continues on. 
+
+My contention here is that these labels are exactly the opposite of what they would be if we paid close attention to language. In a better world, a more fair world, the labels would be reversed. Until then, the best terminology to describe node is "non-blocking".
+
+First, a thought experiment: is it good to be wise and young synchronously, or asynchronously, and how often does that happen? Is it better to be beaten by two people sychronously, or asynchronously? The English language provides these answers, and more.
+
+The English language defines synchronous as "existing or occurring at the same time." and asynchronous as "not occurring at the same time." Ergo, to determine whether code is synchronous or asynchronous ought to a simple matter of inspecting it. First let's consider the following block of code:
+
+{% highlight javascript %}
+function1();
+function2(); 
+{% endhighlight %}
+
+Are these two functions (1) invoked (2) running or (3) resolved synchronously, or asynchronously? Obviously, function1 runs, executes, and resolves first, then function2. In every way they are asynchronous! 
+
+But the world is wide, and there are more things than are dreamed of, and so we might encounter a strange and outrageous phenomenon like this: 
+
+{% highlight javascript %}
+fs.writeFile(humongousFile);
+function2(); 
+{% endhighlight %}
+
+What is going on here! This is node code. The fs module is written in C and has access to the full range of the computer's capabilities. It is not bound by javascript's single threaded nature. It starts writing a file on a different thread. Does the javascript pause before going on? Of course not! It continues on, almost as if the two processes were...synchronous. 
+
+In this example writeFile is invoked, then function2 is invoked. But writeFile calls a process not written in javascript which then runs in parallel to the javascript in this environment. They run at the same time. Since they are running at different times, they probably resolve at different times. 
+
+If we compare these two scenarios we see that in both of them functions resolve at different times and are invoked at different times, but in only case do they both run at the same time. That is in the second case. 
+
+This indicates two things, which were almost clear from the beginning: asynchronous is not synchronous and synchronous is not asynchronous. Aristotle lives. 
+
+What are computer scientists referring to when they say that the second process, which I maintain is synchronous, is in fact asynchronous? How is the asychronous process actually sychronous? And aren't there enough cognitive complexities that naturally arise, without adding to them by everyone adopting the wrong convention? 
+
+Let's dig a little deeper.
+
+What Node Does
+=
+
+The V8 runtime, which we all know and love from Google Chrome, is what is responsible for interpreting javascript in the browser. Since it's written in C, there is in principle no reason that it has to run in a browser at all. Node wraps the V8 engine and adds some additional C code which makes it possible for you to do anything that your operating system allows a normal program written in C to do. To make this easier, it comes bundled with "modules" that allow you to access some prewritten C for things like writing files to the hard drive. It's really that simple. 
+
+The only complexity is that it is utilizing C code, which is running in a much lower-level environment. Although the abstraction of node code is single-threaded, it delegates to multithreaded processing. Whereas regular javascript is single-threaded, node can do things like write a file and then proceed on with next line of execution before that new process has finished executing, since the file write is being executed by some lower-level code that has access to the thread pool and is part of the filesystem module. Since it is some other part of the system that is doing that job, the next line of javascript executes potentially before the file system has finished writing. Node acts as an event-receiving and delegating wrapper over this process. 
+
+Because there is really nothing else like it, people have tried to coin terms for this wierd congomeration of syntax and underlying process. 
+
+How Did This Happen
+=
+
+If we look at [wikipedia](https://en.wikipedia.org/wiki/Asynchronous_circuit) we find that the use of synchronous and asynchronous goes back to the development of circuits themselves. With these circuits, the appelations synchronous and asynchronous were appropriate, because the question was whether the circuit itself is synchronized or not: 
+
+>"In synchronous logic circuits, an electronic oscillator generates a repetitive series of equally spaced pulses called the clock signal. The clock signal is applied to all the memory elements in the circuit, called flip-flops. The output of the flip-flops only change when triggered by the edge of the clock pulse, so changes to the logic signals throughout the circuit all begin at the same time, at regular intervals synchronized by the clock. The outputs of all the memory elements in a circuit is called the state of the circuit. The state of a synchronous circuit changes only on the clock pulse. The changes in signal require a certain amount of time to propagate through the combinational logic gates of the circuit. This is called propagation delay. The period of the clock signal is made long enough so the output of all the logic gates have time to settle to stable values before the next clock pulse. As long as this condition is met, synchronous circuits will operate stably, so they are easy to design.""
+
+On the other hand, we have async circuits: 
+
+>In asynchronous circuits, there is no clock, and the state of the circuit changes as soon as the input changes. Since they don't have to wait for a clock pulse to begin processing inputs, asynchronous circuits can be faster than synchronous circuits, and their speed is theoretically limited only by the propagation delays of the logic gates. However, asynchronous circuits are more difficult to design and subject to problems not found in synchronous circuits. This is because the resulting state of an asynchronous circuit can be sensitive to the relative arrival times of inputs at gates.
+
+Async circuits require special logic: 
+
+>Asynchronous logic is the logic required for the design of asynchronous digital systems. These function without a clock signal and so individual logic elements cannot be relied upon to have a discrete true/false state at any given time. Boolean logic is inadequate for this and so extensions are required.[clarification needed] Karl Fant developed a theoretical treatment of this in his work Logically determined design in 2005 which used four-valued logic with null and intermediate being the additional values.
+
+Promises much? 
+
+What seems to have happened is that computer scientists borrowed from one domain a term that seemed applicable in some ways, but which from the point of view of the code itself, was exactly the opposite. 
+
+If we look at how the word "asynchronous" is used by programmers today, it is completely detached from the element of synchronization by a clock. There are three possibilities for what motivated this borrowing: 
+
+1. Processes running at the same time were enabled by asynchronous circuits, so the form of code that utilized multiple processes came to be called "asynchronous".
+2. The logic used to deal with asynchronous circuits influenced the logic dealing with what is called asynchronous code, so the code was called asynchronous
+3. Asynchronous came to mean "strange" or "non-deterministic" and so anything non-deterministic came to be called "asynchronous"
+
+When I hear the word asynchronous used with respect to Javascript, something like (3) is what actually happens: 
+
+1. I feel that /a/ is serving as a marked form as in indo-european (think the sanskrit "Sat"--truth-- versus "Asat"-- untruth). So I know that the word is somehow marked.
+2. I hear the rest of the word and know that it refers to the semantic domain of time. The word stands out to indicate the auro of "strangeness" with respect to time.
+3. Strangeness with respect to time means non-linear. The word asynchronous therefore indicates a non-deterministic resolution pattern.
+4. I have to interpret asynchronous to mean atemporal, or achronological, in accordance with this process, or risk being confused by interpreting it in its conventional meaning of "not happening at the same time", because in this case it is actually used to indicate things that are happening at the same time
+
+I can almost empathize with the creators of this terminology. The sound a, after all, means absence. It carries a negative connotation. It would have made no sense to say that normal code was deficient. Rather, non-deterministic code would have to be marked this way, to indicate that the element of linear time was not present. What was meant by asychronous, and what is largely means today, is that this code is "achronological", in that it does not follow linear time.  
+
+What You Can Do: Use the Term Non-blocking
+=
+There is still time for the world to turn back from this path. People could start calling asynchronous code by it's real name, synchronous, or at least use a different word such as "atemporal" or non-blocking. 
+
+Since there is zero chance of the first happening, the only thing to do is to use the word non-blocking in every possible context and conversation, in order to convey the actual meaning. Otherwise, we risk deliberately mystifying what is already a complicated area. 
+
+
+
+
