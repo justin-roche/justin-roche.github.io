@@ -2,11 +2,46 @@
 #+BEGIN_SRC yaml
 ---
 layout: post
-title:  "z"
+title:  "How To Add Cut and Paste in Treemacs"
 date: 2019-08-11 00:45:31 +0530
-categories: Node
+categories: Emacs
 ---
 #+END_SRC
-* ecc
-** something else
-** okay
+* treemacs
+* general outline
+
+
+{% highlight scheme %}
+#+BEGIN_SRC lisp
+(defun jr/treemacs-cut-node ()
+  (interactive)
+  (treemacs-copy-path-at-point)
+  (jr/treemacs-close-file-at-path (car kill-ring-yank-pointer))
+  (with-temp-buffer
+    (let* ((old-name (car kill-ring-yank-pointer))
+           (is-dir (file-directory-p old-name))
+           (new-name (concat jr/tree-move-dir
+                             (car (last (split-string old-name "/"))))))
+      (if (eq is-dir t)
+          (progn
+            (copy-directory old-name new-name)
+            (when (file-directory-p new-name)
+              (delete-directory old-name t)))
+        (progn
+          (dired-rename-file old-name new-name t)))
+      (treemacs-refresh))))
+#+END_SRC
+{% endhighlight %}
+
+{% highlight javascript %}
+#+BEGIN_SRC javascript
+Function Car(driver){
+	var obj = Object.create(Car.methods);
+	obj.driver = driver; 
+	return obj; 
+} 
+#+END_SRC
+{% endhighlight %}
+
+* the cut function
+* paste function
