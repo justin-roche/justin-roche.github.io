@@ -2,20 +2,25 @@
 #+BEGIN_SRC yaml
 ---
 layout: post
-title:  "How To Add Cut and Paste in Treemacs"
+title:  "Add Cut and Paste to Treemacs"
 date: 2019-08-11 00:45:31 +0530
 categories: Emacs
 ---
 #+END_SRC
-* treemacs
-* general outline
+* Intro to Treemacs
 
+A good file explorer is an absolute necessity if you want to turn Emacs into a fully functional modern IDE, and one of the best file explorers available for Emacs is [[https://github.com/Alexander-Miller/treemacs][Treemacs]]. However, out of the box Treemacs doesn't have great (read: intuitive) support for a very common action: moving files from one place to another. 
 
-{% highlight scheme %}
+What we would like to do is be able to cut files in the tree and then paste them into other parts of the tree with minimal input into the minibuffer. Luckily this is very simple with a little bit of elisp hacking. 
+
+* The cut function
+We will get the path of the selected node using Treemac's built-in function treemacs-copy-path-at-point. The node's path is then accessible through the kill ring.
+ When we call the cut function, the files will be temporarily removed from the tree. To avoid maintaining very much state in our code, the cut-paste functionality will store the files that have been cut to a temporary directory (here called jr/tree-move-dir) in the cache folder. The move action will use dired-rename-file if the target is a file, but it will use copy-directory if the target is a directory. 
+
+{% highlight clojure %}
 #+BEGIN_SRC lisp
 (defun jr/treemacs-cut-node ()
   (interactive)
-  (treemacs-copy-path-at-point)
   (jr/treemacs-close-file-at-path (car kill-ring-yank-pointer))
   (with-temp-buffer
     (let* ((old-name (car kill-ring-yank-pointer))
@@ -33,15 +38,53 @@ categories: Emacs
 #+END_SRC
 {% endhighlight %}
 
-{% highlight javascript %}
-#+BEGIN_SRC javascript
-Function Car(driver){
-	var obj = Object.create(Car.methods);
-	obj.driver = driver; 
-	return obj; 
-} 
-#+END_SRC
-{% endhighlight %}
+* The paste function
+ The paste function is largely the inverse of the cut function. It loops over files or directories that have accumulated in the tree-move-dir directory, moving them to the specified node under the cursor. If the cursor is over a file, the pasted items are added as siblings of that file. Note that we have to filter out the "." and ".."  pseudo-directories from the list of files returned by directory-files. Just like the cut function, the paste function uses dired-rename-file for files and copy-directory for directories.
 
-* the cut function
-* paste function
+#+BEGIN_SRC elisp
+{% highlight clojure %}
+(defun jr/treemacs-paste-nodes ()
+  (interactive)
+  (treemacs-copy-path-at-point)
+  (with-temp-buffer
+    (let* ((files (directory-files jr/tree-move-dir t))
+           (cursor-loc (car kill-ring-yank-pointer))
+           (dest-dir (if (eq (file-directory-p cursor-loc) nil)
+                         (s-replace (car (last (split-string cursor-loc "/")))
+                                    ""
+                                    cursor-loc)
+                       cursor-loc)))
+      (dolist (old-name files)
+        (let* ((f-name (car (last (split-string old-name "/"))))
+               (is-dir (file-directory-p old-name))
+               (new-name (concat dest-dir f-name)))
+          (unless (or (string= "." f-name)
+                      (string= ".." f-name))
+            (if (eq is-dir t)
+                (progn
+                  (copy-directory old-name new-name)
+                  (when (file-directory-p new-name)
+                    (delete-directory old-name t)))
+              (with-temp-buffer
+                (progn
+                  (dired-rename-file old-name new-name t))))
+            (treemacs-refresh)))))))
+{% endhighlight %}
+#+END_SRC
+* One final thing
+ Using only the cut function above there is one remaining problem. If the cut file is being visited by the focused buffer, the final call to treemacs-refresh  will cause the tree to navigate to the tree-move-dir. To avoid this the buffer for the cut file is closed, by calling the following function:
+#+BEGIN_SRC elisp
+{% highlight clojure %}
+(defun jr/treemacs-close-file-at-path (path)
+  (let* ((bfs (buffer-list))
+         (opened-buffer (car (last (seq-filter (lambda (bf)
+                                                 ;; (debug)
+                                                 (equal path (buffer-file-name bf)))
+                                               bfs)))))
+    (if (not (eq opened-buffer nil))
+        (progn
+          (kill-buffer opened-buffer)))))
+{% endhighlight %}
+#+END_SRC
+
+ To see this in action copy the source file [[https://github.com/justin-roche/emacs-config/blob/master/treemacs-cut-paste.el][here]].

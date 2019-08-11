@@ -9,11 +9,11 @@ make-smaller-titles: true
 
         <div class="col-md-12 main content-panel">
 
-            <div style="height: 100px" " class=" gravatar">
-                <!-- <img src="{{ site.url }}/images/symbol6.png" class="img-circle about-image" height="170" width="250" alt="{{ site.title }}" /> -->
+            <div style="" " class=" gravatar">
+                <img src="{{ site.url }}/images/th.jpeg" class="img-circle about-image" height="160" width="250" alt="{{ site.title }}" />
             </div>
 
-            <h1 class="header author-header" itemprop="headline">{{ site.title }}</h1>
+            <h1 class="header author-header" style="margin-top: 10px" " itemprop=" headline">{{ site.title }}</h1>
 
             <div class="author-text">
                 {{ site.title_description }}
