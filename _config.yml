@@ -6,10 +6,10 @@ baseurl: ""
 # url: "http://carte-noire.jacobtomlinson.co.uk/"
 title_description: "Web Development, Node, Emacs, and more"
 # title_image: "https://www.gravatar.com/avatar/00000000000000000000000000000000?s=500&d=mm"
-google_analytics: "UA-20365477-4"
-disqus_account: cartenoire
+google_analytics: ""
+disqus_account: http-justin-roche-github-io
 github_repository: https://github.com/justin-roche
-addthis_id: ra-513c6fa83da6ec67
+addthis_id: 0
 post_limit: 5
 
 # Social usernames/URLs
