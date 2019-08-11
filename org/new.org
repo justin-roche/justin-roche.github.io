@@ -11,7 +11,7 @@ categories: Emacs
 
 A good file explorer is an absolute necessity if you want to turn Emacs into a fully functional modern IDE, and one of the best file explorers available for Emacs is [[https://github.com/Alexander-Miller/treemacs][Treemacs]]. However, out of the box Treemacs doesn't have great (read: intuitive) support for a very common action: moving files from one place to another. 
 
-What we would like to do is be able to cut files in the tree and then paste them into other parts of the tree with minimal input into the minibuffer. Luckily this is very simple with a little bit of elisp hacking. 
+What we would like to do is be able to cut files in the tree and then paste them into other parts of the tree with minimal input into the minibuffer, just like cutting and pasting lines. Luckily this is very simple with a little bit of elisp hacking. 
 
 * The cut function
 We will get the path of the selected node using Treemac's built-in function treemacs-copy-path-at-point. The node's path is then accessible through the kill ring.
