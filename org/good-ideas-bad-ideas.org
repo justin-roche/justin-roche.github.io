@@ -1,0 +1,212 @@
+#+OPTIONS: toc:nil num:nil
+#+BEGIN_SRC yaml
+---
+layout: post
+title:  "Top Ten Good Ideas Gone Too Far in Frontend Development"
+subtitle:  "My most unpopular opinions"
+date: 2019-10-30 00:45:31 +0530
+categories: Angular, Javascript
+---
+#+END_SRC
+
+# <img src="{{ site.url }}/images/snowman.png" class="center" />
+* 0. Some Contrarian Views
+
+# I had begun this post with the idea of contrasting good ideas with their corresponding, extreme versions.   
+
+From my in depth memetic research, I've gathered that the good idea > bad idea meme template originates with [[https://www.youtube.com/watch?v=2dJOIf4mdus%20][this]] Animaniacs segment. It's morphed over the years and maintains staying power for the reason that it reveals an essential truth: the human mind tends to go to extremes in it's problem solving, applying solutions that work in small doses to an inordinate degree as a cure-all in cases for which they were never intended. 
+
+Nowhere is this more apparent than in the erratic trends within software development, where a purported solution tends to grow to encompass a conglomeration of use cases it may never have been well-suited for. The reasons for this may be interesting, but are not my subject here. Instead, these are my top ten highly opinionated examples of good ideas gone bad. 
+
+Fair warning, however: most of these ideas are also <b>highly unpopular</b> and do not necessarily reflect the views of anyone including me, which is why <b>I preemptively disavow</b> everything I have written here. Just as our bodies replace our cells completely every seven years, or something, so may it be said that I am not the author of this. As a way of reminding the reader of this, I will be illustrating the rest of this post solely with images from [[https://old.reddit.com/r/ImaginaryBestOf/][r/imaginary worlds.]] 
+ 
+* 10. Development Processes
+> Good idea: Researching the right tech for the job
+
+<img src="{{ site.url }}/images/hall.jpg" class="center" />
+Only in the most awesome of all imaginary worlds, the one depicted above, in which there are literally <i>epic rotating contraptions of mysterious knowledge</i>, could we actually choose a tech stack without any regret, as we would be able to simply swap it out for something more appropriate later.
+
+In our sad, mundane world, without even a single real <i>contraption</i> in sight, it may be said of using tech X what Kierkegaard said of marriage, "use the newest library or don't use it, you will regret both". The reason for this is that complexity seems to be conserved, or at least the scope of a project will grow to match what we can do using the tools available. It can't be a coincidence that regardless of what tool is used, there always seem to be problems with it.
+
+That is not to say that the tech used doesn't matter. It would not make sense to write an application of any size in jquery alone in the present year. But for that reason it is generally recognized as unreasonable, and using a modern framework is generally recognized as reasonable. Beyond <i>generally accepted standards</i> there isn't much that can be said for certain about what tech to use where. That's why: 
+
+> Bad idea: Obsessing over using the right tech when processes and organization dynamics will likely determine success
+
+I've put this at number 10 since I think most everyone, especially managers, already have an inkling of the truth of this. While a tech stack or a specific technology can provide a competitive advantage, and can make or break certain feature sets in certain deliverables, it is organization dynamics that make or break entire organizations and products. That is because the software development is embedded in these systems and arise from their communication patterns, as has been remarked on famously. 
+
+Trying to accomplish a particular technical outcome with tools that are not sufficient is doable, though unbelievably annoying. It may take longer and be of lower quality, but the most important asset, human capital, lives to fight another day. Trying to accomplish anything at all with people you don't get along with, or with whom there are dysfunctional team dynamics, is simply not possible and leads to attrition or cycles of critical defects. 
+
+  Perhaps this is because although code can become hardened and resistant to change, it is never engaged in unconscious habits--aside from certain CSS positioning code. Nor does code become defensive when corrected. For these reasons it would be unwise to spend more attention all the time on choosing tech than on choosing teams and management styles that help your organization reach is goals.  
+* 8. Documentation
+> Good idea: Using names to self-document  
+
+But the first person who ever said "documentation becomes stale" had hit upon one of the great rationalizations of all time. Do we even have evidence that it was not the voice of the devil? After, all it's not wrong. 
+
+Why explain your code at all if your explanation will just become outdated and confusing? Thus it became common for many developers to look back at their old code, as well as the code of others, with a feeling akin to that depicted below, in a painting that might well be entitled "What's legacy code?": 
+
+<img src="{{ site.url }}/images/letter.jpg" class="center" />
+
+As can be seen, the practice of not adequately commenting harms not only those who code, but also their children, who have to constantly ask what's wrong. That's why I would say:
+
+> Bad idea: not writing comments because "the code explains itself"
+
+In fact, nine times out of ten, it doesn't explain itself. And if it does, a comment can't hurt. It is indeed easy for code comments to become outdated, but that is no excuse for not writing comments to explain your code. The question of whether a particular abstraction is an appropriate one for the task may depend on no more than whether or not there is a comment to explain it. 
+
+The thing is, it really doesn't have to be this way. If working with Emacs has taught me anything, it's that commenting your code can actually become second-nature. Whereas I would have previously been of the opinion that comments are for the otherwise surprising, unexpected elements of code, I now think comments serve a much broader purpose. They can act as a scaffolding over all abstractions, allowing the names in the code to be themselves more sparse when necessary, and explaining the whole algorithm as if it is surprising. 
+
+This approach, which I'd not go so far as to call "literate programming" but rather just "cozy coding", has of course never really caught on. But I think to do otherwise is often to give ourselves too much credit: our algorithms may not be the best and even our future selves may not remember what precisely is going on in our code. For that reason it's important to document code. Think of the children. 
+
+* 7. Style
+This point and the following one have to do with what is perhaps the most arbitrary concept here, and that is style. These are mostly personal preferences about which some disagreement is to be expected, but which inform many of the other ideas on this list. The first has to do with notion of general and specific tools or programming idioms. 
+
+Here it must be said:
+
+> Good idea: using the latest and greatest tools
+
+There is one issue, though, with the newest and fanciest tools. Sometimes they are just a highly specific implementation of things that could be done before. Which is why I say some skepticism about the newest tools is warranted and:
+
+> Bad idea: using specific tools when more powerful, general tools are available
+
+What does this mean? It is hard to express in every instance, but we can take one for example: Angular forms. In Angular you can have either forms that are model-driven, or that are form driven. The typical explanation for which one to prefer goes as follows: model-driven forms, in which your form controlling code lives in the component's typescript, are for complicated forms, while template driven forms are for forms that are simpler, since everything important happens in the template.
+
+I wouldn't say I exactly <i>disagree</i>, but as a matter of experience, what I have seen is that forms get more complicated as you go through time. And so what seemed like a good use case for a specific tool, the template-driven form, ends up getting refactored to be handled by the more powerful, general method (model driven forms). It's as if the whole domain specific language of template driven forms is a highly specific tool for certain cases that lacks generality. I mean, that is exactly what it is, since Typescript is Turing complete and whatever we do outside of that, inside of templates, can just be called <i>configuration</i>. 
+
+After long enough trying to make a complex model work with template driven approaches, it turns out that what you really wanted are your own specific idioms for dealing with the abstractions inherent in your own data model, and you might as well have gotten a head start on that by building it to begin with instead of trying any shortcuts using shallower domain specific language of Angular forms.
+
+<img src="{{ site.url }}/images/engineers.jpg" class="center" />
+
+It's not just like this with forms though. In almost every case, with every library and with everything that promises to be a shortcut, it turns out that hard problems end up returning to "the ground language", that is, the primary execution language. Let's call it the PL, as opposed to the Domain Languages that build up around it. PL solutions are more verbose (sometimes) and often feel like reinventing the wheel, but they have the advantage of debugability, fine-grained temporal control (they can be hooked into the component lifecycle at will), and tighter correspondence to your own data model. They can also be <i>consistent</i> across multiple components, as well as transparent and well-understand.  
+
+As another example consider the idea of sending input to a component. In Angular the way to do this is through Input decorators, but this immediately raises the question "how many inputs?" Take a moment to consider how many inputs are appropriate for different levels of component complexity. 
+
+If you say a component needs more inputs the more complicated it becomes, that is an example of Domain Language orientation. If you say a component needs fewer inputs the more complicated it is, that is PL orientation. 
+
+Clearly, I hold the second view. If, for some complicated component, the configuration can be made a result of inspecting a single, complex configuration object passed down through a single input, than as little as possible will happen as a result of logic in the template--everything is moved to the Typescript. Everything about your configuration object lives in the component code. This means that you can assemble the configuration object as a whole in the parent code. It means that now you can do configuration changes referring to other parts of the configuration. When you render out a subproperty of the configuration object, even change detection will happen predictably, based on reference in accordance with the primary language. 
+
+There are thus a huge number of advantages to handling problems in the primary language, because it is always the most versatile and powerful. And this doesn't even address the benefit of syntactic simplicity, of reduced cognitive overhead: there is but one language problems are expressed in, and that language is consistent.   
+
+Of course, PL solutions can be tempered. It is more of an orientation to return problems to the ground before they become larger. And it suffers from one main problem: PL solutions can be non-idiomatic. Because you are effectively <i>escaping Angular</i> and the Angular way of doing things, the solutions require some explanation. But it is a general outlook that seems to me to make sense and also be applicable outside of just frontend design.    
+
+* 6. Abstraction 
+
+In the same vein of style considerations, we all know how it important it is to keep it DRY, thus it said:
+
+> Good idea: not repeating yourself
+
+But what I would add is that although this is an important principle of style, it isn't the most important, at least to me. More important still is the idea of single responsibility, from which all good style arises. 
+
+These two considerations (single form, through non repetition, and single purpose), may not always harmonize and we sometimes have to choose between them. If, for example, we have the choice of creating two components, or reusing one for two (slightly different) purposes, there are many different factors that come into play in determining whether to implement an abstract class or allow code duplication. 
+
+ Of course, the goal should always be to determine the single purpose that is most generalizable. In theory, this single purpose, correctly articulated, should allow for a single form to represent it. But implementation details can get in the way of allowing this. In such cases we should be careful about what to avoid: 
+
+ > Bad idea: premature abstraction
+
+    Premature abstraction, like premature optimization, is dangerous because it seems like a good idea at the time. By the time this new abstraction is implemented fully, however, the various diverse purposes which it implements are so inextricably linked that they can never be separated out again without a complete rewrite. 
+
+<img src="{{ site.url }}/images/bird.jpg" class="center" />
+
+Note that this is not the case for duplication. Code duplication can be rewritten, unless it is just tremendous amounts of duplication. Not only that but duplication, if the duplicated portions are idiomatic, is also <i> understandable </i>. When, however, an abstraction is introduced, it becomes subject to personal styles that may or may not be shared. It is also going to be an abstraction of varying degrees of appropriateness-- is the abstraction really natural for the use case? Finally, is the abstraction's intrinsic form, its own naming and implementation, obvious and natural? These are all considerations against premature abstraction, which make duplication of idiomatic code look almost like a relatively benign antipattern. 
+
+Duplication, at its worst, gets you halfway to the destination. But premature abstraction seems to me to be an actual wrong turn. Perhaps it is a stretch, but we can find analogues to this hierarchy through other parts of rhetoric, including fiction writing, where repetition is not hardly frowned upon, but the idea of a single effect is almost always a good idea, at least if you buy Edgar Alan Poe's theories.  
+
+    Practically speaking, then, anytime there is an opportunity to abstract shared code I would suggest that the most important thing is to abstract out only what is truly shared in the logic of the two instances. To do that, we must have access to the whole repetoire of code sharing techniques. This may mean using inheritance patterns, but in Angular (with inheritance from component base classes being kind of awkward) it might mean a common parent component. It might mean sharing templates through ng-content outlets. It might mean sharing a pure .ts configuration object, or the implementation of a decorator pattern. Perhaps a common service can be injected, or component state can be moved into Redux. 
+
+Whatever is used to share code, the idea of just reducing repetition isn't enough, we need to be sure that the way we are doing it makes sense so that the abstraction is the essential abstraction that matches the nature of the problem at hand.   
+
+* 5. Language Features
+
+What comes under this heading might be called the most "large timescale" of these points. That is, I will never live to see any change in this regard, but it's immportant to bear some of these points in mind. The concerns the tension between new language features and the sometimes ardous methods we have of shoehorning them into our development process. First off:  
+
+> Good idea: using the newest language features
+
+Everything ES6, for example, is an improvement, hands down. However:
+
+> Bad idea: transpilation
+
+What? How can that be? Transpilation is like the air, the sea, a part of our world. As long as the sun as shone, so has transpilation been with us, like war. That may be true, but there have always been those few who, wandering from town to town as itinerant build engineers, speaking in whispers, await a day when the refinement of language may take place in other ways-- via [[https://www.sweetjs.org/][hygenic macros]] for instance. Of course it's been done before. 
+
+There is nothing to be done about this today. We just have to live with it. In that sense, this point is unique. Whereas the other points on this list are more actionable, the problem of <i>the build</i> is a problem that is almost resistant to any fixing. 
+
+The idea of adding language features in a composable way, which can be easily reasoned about, is probably as old as Lisp. But will we ever see an end to transpilation? Maybe not.  
+
+* 4. The Build
+
+  I like using Angular CLI to create the initial project files and to add new components and services to a project. Who wouldn't? There is too much boilerplate to make doing it on your own sensible, and producing all those files at once fills me with warm fuzzy "getting things done" feelings. Therefore:
+
+> Good idea: using generators for creating components and services
+
+But let's not beat around the bush here. Let's not avoid the elephant in the room. Let's frankly admit it: generators like Yeoman were around before Angular CLI. Angular CLI has bigger dreams. It aims to replace Webpack. And my question is: why? 
+
+Why would anyone think that the build chain itself even falls in the purview of the frontend framework? How could it ever be that a brand new configuration, in the Angular.json file, with all new semantics and all new way of doing things, could possibly replace the build system that has been worked out completely already to meet all use cases? It's a little reminiscent of how the Angular team already [[https://hashnode.blog/rob-eisenberg-on-aurelia-and-how-it-stacks-up-against-angular-2-and-react-82721d714449][built their own html parser]], because Angular's templates are not standards compliant.
+
+> Bad idea: turning the whole build into a black box
+ 
+I'm calling it now: if you are engaged in enterprise-level development with Angular, you've already ejected the webpack config from your Angular project, and if you haven't, you will. The reason is that there's just no reason to think this black box Angular CLI build tool can replace other tools that have been around for longer and have been evolving to deal with every conceivable issue. The Angular team simply isn't going to be able to replace the power of the Webpack ecosystem with their own tool. 
+
+<img src="{{ site.url }}/images/mecha.jpg" class="center" />
+
+Of course, it would be awesome if some of the confusing syntax of Webpack were fixed. But what I take issue with is making the build chain driven by the Angular team when there are so many things that the build chain is responsible for that aren't related directly to Angular. As it is, Angular CLI is a stepping stone, it's what you use to get started. For getting started it is great. But when, as they say, the coconuts start dropping, you're going to switch back to Webpack. 
+
+* 3. Frontend Testing
+
+There's really no way to sleep at night without automated testing, and for that reason we have to say: 
+
+> Good Idea: Testing
+
+The question of how to do testing is more open, however. There may be no perfect testing paradigm for all cases, but one thing for certain is:
+
+> Bad Idea: Unit testing everything in the front end
+
+Note the key word "unit". End-to-end testing is completely fine, in fact it is so far and away superior for testing Angular compared to using Angular's built in unit testing tools that there is almost no comparison. If unit testing Angular with Angular testbed is like banging rocks against the ribcage of a wooly mammoth, using Puppeteer for testing is like atomic energy, and Cypress.js is like powering your spacecraft with exotic dark matter. 
+
+
+<img src="{{ site.url }}/images/nemotox.jpg" class="center" />
+The distinction here to make--the reason why end to end testing is so much better-- is between two distinct types of input and output. The unit testing paradigm arises, in terms of it's ideal cases, from the notion of the classical algorithm. A program that returns a set of predefined output for a set of predefined input is algorithmic in this sense. The frontend, which is event based in that there are many pathways a user can walk, which represents its state as business data (rendered variables) and program data (the DOM itself), and which exists in a very hostile environment for pure testing (the browser), has a different function shape. Someone who knows more mathy things than me could give a name to what kind of function it is, but it is not the kind of more or less isomorphic input/output set produced by classical algorithms. 
+
+Not only is the state shape much more complicated (see good idea/bad idea two above), but the production of test data and the verification of test output is also more involved. Input and output cannot be simulated across a range that is at all continuous. This is why testing Angular involves endless mocking of components and test data.
+
+Luckily, there is a better way. Until we know more about how to characterize the front end as a function, by adopting the purely functional approach of something like Elm, the best thing to do is E2E testing. E2E testing effectively "collapses" the state representation into a family of states that look the same at any point. It avoids complicated reproduction of the dependencies for tested components, by testing what the user actually sees. This frees us up to write unit tests only for the algorithmic portions of the frontend, e.g. places where there are input and output sets of data without user event involvement (for example, a sort operation on a rendered list of items). 
+
+E2E also has a second benefit: it looks at things in a different <i>way</i>. A unit test, written in Typescript and testing properties in Typescript looks at things the same way the developer does when initially attempting to guarantee correctness. But testing the final appearance and structure of the rendered page, the routing and behavior as all components tie together, not only makes intermediate and high level abstractions testable immediately, but also represents them in a different way (which happens to be much closer to the way the the end user sees things).   
+
+Of course unit testing could improve dramatically with new tools and paradigms. There is tremendous room for this field to grow. For example, the last time I tried Phantom.js does not allow ES6 proxies, which would be the key to autopopulating objects, therefore the key to self-mocking objects, and therefore the key to simplifying unit tests. Since the task of testing is a metaprogramming task where even basic metaprogramming methods are still unavailable, this is most definitely an area poised for spectacular innovation.
+   
+* 1. Static Typing 
+
+ I've chosen to give typing the highest spot on this list because it is perhaps the most abused good idea in the history of coding. I'm going to therefore venture an unpopular opinion: I don't think statically typed languages are the future, or, if they are, I don't know that that's a better future than what we have now. Why? The fact is that, like any engineering decision, there are benefits and drawbacks to the implementation of types. Types are of course amazing for some use cases--intellisense for example. Thus:
+
+> Good Idea: Statically typing some things
+
+But if you've worked on Angular you know that types can present quite a stream of unecessary and useless build errors unrelated to actual application logic. There is a tremendous amount of overhead related to modules, ambient types, third-party libraries, data models that don't match a type system, and boilerplate. Which is why I hold:
+
+> Bad Idea: Statically typing everything
+
+   [[https://www.youtube.com/watch?v=2V1FtfBDsLU&t=37m07s][Here]] is the always humorous (and linguistically precise) Rich Hickey, the creator of Clojure, explaining some of the problems with statically typed systems. He notes that information, of the type filled out in forms, isn't naturally restricted to a type system of any kind. I would say that while typing is sometimes useful for getting metadata about libraries that are part of the framework itself, it shouldn't be relied on to actually capture any errors flowing from application semantics, and should always be opt-in. 
+
+"But author of this blog," you say, "so many experts, academic and profesional, can't possibly be wrong about how to minimize risk." Maybe, maybe not. Economic incentives and fear may lead to strange results, and when industries want to minimize risk without a clear, empirically proven, means of doing so, stranger things have happened. Consider the fact that to this very day [[https://www.amazon.com/Evidence-Based-Technical-Analysis-Scientific-Statistical/dp/0470008741/ref=sr_1_1?keywords=technical+analysis+scientific&qid=1572742082&sr=8-1][technical analysts can't tell a real stock from a fake one by inspecting it's chart]].  Oh well, at least what talking heads say about stocks sounds scientific. 
+
+  If we consider static typing as a tool like any other, it should be clear that it's best use case is composed of two necessary conditions: in order for the error presented by a compiler to be maximally useful, the API of the typed construct must be (1) likely to change (2) without the knowledge of someone using the API. I'm not claiming typing can't be useful outside of these cases, but that these two factors present the exemplary case of when the overhead of static typing is likely to pay off.
+
+   These  two requirements are absent in third-party packages, since they should be moderately stable before we use them and we can lock the version down (at least until upgrading). Also, they aren't present in our own code, since, provided we have a typical personality structure, our own code isn't changing without our knowledge. 
+
+Ironically, then, the one area where static typing would be most useful is therefore a case where it is relatively neglected: ensuring tight correspondence between our own backend API and the frontend use of its return values. 
+
+<img src="{{ site.url }}/images/hall2.jpg" class="center" />
+
+Our own backend API is likely to be rapidly evolving and doing so without our knowledge, since there is a communication boundary between frontend and backend development (typically these two tasks are performed by different teams or at least different people, and often on different schedules). 
+
+  So, all things being equal, the backend API should present the frontend with static typings for its endpoint results, and improper use of these should fail at build time. In practice this is rarely implemented, which is why we might question whether static typing is motivated by purely empirical reasons, or whether it has a strong social or bureaucratic component (we need to feel like we are minimizing risk). If typing per se were a good thing, surely it would be industry standard practice to use it where it would save the most time and trouble--across communication boundaries where APIs change rapidly. If, however, it was being applied as part of a fad to make JS like other languages, this incongruous application would not be surprising at all. 
+
+  Luckily, statically typing the integration boundary isn't actually so hard if you are using Angular. If the backend provides an endpoint specification like Swagger, or is automatically annotated with some snazzy Java magic, all that is necessary is to parse this information in a new way (to create a Typescript interface), and at a new time (before compilation of the frontend Typescript code). Voila, you now have a statically typed integration layer, and all the pain of static typing suddenly is worthwhile. Now, instead of hoping and praying that the backend and frontend actually correspond, the frontend build will actually fail at compile time if the endpoint data is used in the wrong way. This can capture a lot of errors that would otherwise manifest as user complaints.  
+
+# * 9. Technical skill/culture fit
+> Good idea: hiring for technical skill
+
+
+
+<img src="{{ site.url }}/images/giantcat.jpg" class="center" />
+> Bad idea: sacrificing culture fit for anything else
+
+
+xx
+
