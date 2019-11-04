@@ -197,7 +197,29 @@ That's why I suspect that if you are engaged in enterprise-level development wit
 
 Of course, it would be awesome if Webpack were simpler. But part of the complexity of Webpack configurations is not incidental, it's a product of the previous point: the FE build actually has a lot of steps and a lot of considerations go into it. As it is, Angular CLI is a stepping stone, it's what you use to get started. But when, as they say, the coconuts start dropping, you're going to switch back to Webpack. 
 
-* 3. Frontend Testing
+* 3. State Management 
+
+State management is another area where fads have been taken to extremes. Atomic state is, of course, one of the great advances in frontend development in recent years, with Redux leading the way in simplifying what is arguably the great conceptual problem of frontend design. Therefore, without a doubt we can say: 
+
+> Good idea: using atomic state to organize your app
+
+  But what is sometimes forgotten is that, although atomic state may be a worthy endgoal, it is not necessarily the best intermediate stage. There are trade offs here involving a lot of boilerplate, as well as a commitment to developing your app using a particular model of the application state. That state may change later, as will the model, and it may be painful to change the state tree at that later date. Therefore: 
+
+> Bad Idea: hardening state prior to having a sufficient idea of the requirements
+
+What exactly is a "sufficient level" of requirements may of course be hard to precisely state. 
+
+<img src="{{ site.url }}/images/monsoon.jpg" class="center" />
+
+Note that if the goal is therefore to keep the Redux state tree as modular as possible, to ensure that development is agile, one might begin by giving each slice of the tree its own reducer. But this affordance to modularity already is a compromise---instead of modeling the final state as it should be, we are representing an intermediate model of the application state. Each reduced slice now begins to look like a separate service, but with more boilerplate spread across more files. Furthermore, if we now we need to share state across different slices of the state tree this will lead to further compromises, since they have been split apart for modularity. 
+
+All of which is to simply say that the ability to reason about the state of the app granted by Redux is for naught if you don't actually know what the state of the app should be. So, as much as possible, the requirements should be defined up front, so that that application state model can be defined prior to beginning development. In this sense Redux is by necessity a solution involving front-loaded planning, and is more waterfall-esque than a free-flowing services model. 
+
+So I think that if the desired UX is not defined to a certain degree of specificity, there should be no problem using a traditional services architecture to structure the frontend. The ultimate goal, atomic state, should be kept in mind for any app of significant complexity, however, because of the gains in reasoning about behavior. Instead of a binary atomic state / services model, it might be better to think in terms of a continuum, with services at one end and single-reducer Redux at the other end, our goal being to move as much as possible toward the side of atomic state, incrementally if necessary.  
+
+
+
+* 2. Frontend Testing
 
 There's really no way to sleep at night without automated testing, and for that reason we have to say: 
 
@@ -235,7 +257,7 @@ As another side benefit, the time saved by not mocking dependencies for unit tes
 
 Of course unit testing could improve dramatically with new tools and paradigms. There is tremendous room for this field to grow. ES6 proxies, in particular, would be the key to autopopulating objects, therefore the key to self-mocking objects, and therefore the key to simplifying unit tests. If anyone knows how to get Phantom.js working with ES6 I would certainly be interested in working on improving Angular unit testing tools. Unit testing is definitely an area poised for spectacular innovation.
    
-* 2. Static Typing 
+* 1. Static Typing 
 
  I've chosen to give typing the next highest spot on this list because it is perhaps the most abused good idea in the history of code. I'm going to therefore venture the most unpopular opinion of all: I don't think statically typed languages are the future, or if they are, I don't know that that's a better future than what we have now. Why? The fact is that, like any engineering decision, there are benefits and drawbacks to the implementation of types. Types are of course amazing for some use cases---intellisense for example. Thus:
 
@@ -262,7 +284,7 @@ Our own backend API is likely to be rapidly evolving and doing so without our kn
 Luckily, statically typing the integration boundary isn't actually so hard if you are using Angular. If the backend provides an endpoint specification like Swagger, or is automatically annotated with some snazzy Java magic, all that is necessary is to parse this information in a new way (to create a Typescript interface), and at a new time (before compilation of the frontend Typescript code). <i>Voila</i>, you now have a statically typed integration layer, and all the pain of static typing suddenly is worthwhile. Now, instead of hoping and praying that the backend and frontend actually correspond, the frontend build will actually fail at compile time if the endpoint data is used in the wrong way. This can capture a lot of errors that would otherwise manifest as user complaints.  
 
   
-* 1. Functional Programming
+* 0. Functional Programming
 
  <img src="{{ site.url }}/images/hall2.jpg" class="center" />
  
